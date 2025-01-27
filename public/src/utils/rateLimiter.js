@@ -1,4 +1,4 @@
-export const rateLimiterBucketToken = (ipAddress, bucketPerIpMap, initialTokens) => {
+ const bucketToken = (ipAddress, bucketPerIpMap, initialTokens) => {
     if (!bucketPerIpMap.has(ipAddress)) {
         bucketPerIpMap.set(ipAddress, initialTokens - 1);
     } else {
@@ -16,3 +16,16 @@ export const rateLimiterBucketToken = (ipAddress, bucketPerIpMap, initialTokens)
 
     return true;
 };
+ const fixedWindowCounter = (requests, requestThreshold)=> {
+    const currentTime = Date.now();
+    const oneMinute = 60 * 1000; 
+    while (requests.length > 0 && currentTime - requests[0] > oneMinute) {
+      requests.shift();
+    }
+    requests.push(currentTime);
+    return requests.length <= requestThreshold;
+  }
+  export const rateLimiter = {
+    bucketToken,
+    fixedWindowCounter,
+  }
