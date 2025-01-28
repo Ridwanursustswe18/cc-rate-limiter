@@ -22,8 +22,12 @@
     while (requests.length > 0 && currentTime - requests[0] > oneMinute) {
       requests.shift();
     }
-    requests.push(currentTime);
-    return requests.length <= requestThreshold;
+    if (requests.length < requestThreshold) {
+      requests.push(currentTime); 
+      return true;
+  }
+
+  return false;
   }
   export const rateLimiter = {
     bucketToken,
