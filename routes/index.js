@@ -4,7 +4,8 @@ var router = express.Router();
 const IpMap = new Map();
 const initialTokens = 10;
 const requests = [];
-const requestThreshold = 10;
+const requestThreshold = 50;
+const windowStart = Date.now();
 const IP = require('ip');
 router.get('/health', function(req, res, next) {
  res.status(200).json({message:"Server Health check"})
@@ -18,7 +19,9 @@ router.get('/unlimited', function(req, res, next) {
   // const minutes = new Date(dhakaTime).getMinutes();
   // console.log(minutes);  
   // const isPassed = bucketToken(ipAddress,IpMap,initialTokens);
-  const isPassed = rateLimiter.fixedWindowCounter(requests,requestThreshold);
+  // const isPassed = rateLimiter.fixedWindowCounter(requests,requestThreshold);
+  const isPassed = rateLimiter.slidingWindowLog(ipAddress,IpMap,requestThreshold);
+
   if(!isPassed){
     return res.status(429).json({message:"limited request!"})
   }
