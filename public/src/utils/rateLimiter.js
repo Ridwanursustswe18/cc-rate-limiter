@@ -62,8 +62,31 @@ const slidingWindowLog = (ipAddress, logPerIpMap, requestThreshold) => {
   logPerIpMap = new Map(sortedEntries);
   return true;
 };
+const slidingWindowCounter = (requests, requestThreshold,duration,currentWindow) => {
+  const currentTime = Date.now();
+  const twentySeconds = 20 * 1000;
+  let previousWindowCounts = 0;
+  let count = 0;
+  while (requests.length > 0 && currentTime - requests[0] > twentySeconds) {
+    if(count == 0){
+      currentWindow[0] += 20;  
+    }
+    requests.shift();
+    previousWindowCounts++;
+    count++;
+  }
+  const previousWindowWeight = 1 - (currentWindow[0]/duration);
+  const totalRequestsWithWeight = (requests.length) + (previousWindowCounts * previousWindowWeight);
+  if (totalRequestsWithWeight < requestThreshold) {
+    requests.push(currentTime);
+    return true;
+  }
+
+  return false;
+}
 export const rateLimiter = {
   bucketToken,
   fixedWindowCounter,
   slidingWindowLog,
+  slidingWindowCounter,
 }
