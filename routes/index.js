@@ -16,15 +16,12 @@ router.get('/unlimited', function(req, res, next) {
   res.status(200).json({message:"Unlimited! Let's Go!"})
  });
  router.get('/limited', function(req, res, next) {
-  const ipAddress = IP.address();
-  // const dhakaTime = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' });
-  // const minutes = new Date(dhakaTime).getMinutes();
-  // console.log(minutes);  
-  // const isPassed = bucketToken(ipAddress,IpMap,initialTokens);
-  // const isPassed = rateLimiter.fixedWindowCounter(requests,requestThreshold);
-  // const isPassed = rateLimiter.slidingWindowLog(ipAddress,IpMap,requestThreshold);
-  const isPassed = rateLimiter.slidingWindowCounter(requests,requestThreshold,duration,currentWindow);
-  if(!isPassed){
+  const ipAddress = IP.address();  
+  const isBucketPassed = bucketToken(ipAddress,IpMap,initialTokens);
+  const isFixedWindowPassed = rateLimiter.fixedWindowCounter(requests,requestThreshold);
+  const isSlidingWindowLogPassed = rateLimiter.slidingWindowLog(ipAddress,IpMap,requestThreshold);
+  const isSlidingWindowCounterPassed = rateLimiter.slidingWindowCounter(requests,requestThreshold,duration,currentWindow);
+  if(!isSlidingWindowCounterPassed){
     return res.status(429).json({message:"limited request!"})
   }
   return res.status(200).json({message:"Limited, don't over use me!"});

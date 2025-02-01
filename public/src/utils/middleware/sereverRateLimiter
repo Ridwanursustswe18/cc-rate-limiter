@@ -1,0 +1,55 @@
+import * as redis from 'redis';
+const client = redis.createClient({
+  url: 'redis://localhost:6379'
+});
+
+// Connect to Redis
+(async () => {
+  try {
+    await client.connect();
+    console.log('Connected to Redis');
+  } catch (err) {
+    console.error('Redis connection error:', err);
+  }
+})();
+
+client.on('error', (err) => {
+  console.error('Redis error:', err);
+});
+
+// Rate limiting middleware
+export const rateLimiter = async (req, res, next) => {
+  try {
+    const key = 'request_count';
+    const limit = 60; // requests
+    const windowInSeconds = 60; // seconds
+
+    // Get current count
+    let count = await client.get(key);
+    console.log(count);
+    if (!count) {
+      // First request, set initial count with expiry
+      await client.set(key, '1', {
+        EX: windowInSeconds
+      });
+      count = 1;
+    } else {
+      count = parseInt(count);
+      if (count >= limit) {
+        return res.status(429).json({
+          error: 'Too Many Requests',
+          retryAfter: windowInSeconds
+        });
+      }
+      // Increment count
+      count = await client.incr(key);
+    }
+
+    console.log(`Request count: ${count}`);
+    next();
+  } catch (err) {
+    console.error('Rate limiting error:', err);
+    // Don't block requests on Redis errors
+    next();
+  }
+};
