@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
-const { rateLimiter } = require('./public/src/utils/middleware/sereverRateLimiter');
+const { rateLimiter } = require('./public/src/utils/middleware/serverRateLimiter');
 
 const app = express();
 
