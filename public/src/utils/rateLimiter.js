@@ -34,20 +34,23 @@ const slidingWindowLog = (ipAddress, logPerIpMap, requestThreshold) => {
   const currentTime = Date.now();
   const oneMinute = 60 * 1000;
   if (!logPerIpMap.has(ipAddress)) {
-    logPerIpMap.set(ipAddress, [currentTime]);
-    return true;
-  }
-  let totalRequests = 0;
-  for (const [ip, timestamps] of logPerIpMap) {
-    while (timestamps.length > 0 && currentTime - timestamps[0] > oneMinute) {
-      timestamps.shift();
-    }
-    totalRequests += timestamps.length;
-  }
-  if (totalRequests >= requestThreshold) {
-    return false;
+    logPerIpMap.set(ipAddress, []);
   }
   const currentIpTimestamps = logPerIpMap.get(ipAddress);
+
+  if (!Array.isArray(currentIpTimestamps)) {
+    logPerIpMap.set(ipAddress, []);
+    return true;
+  }
+
+  while (currentIpTimestamps.length > 0 && currentTime - currentIpTimestamps[0] > oneMinute) {
+    currentIpTimestamps.shift();
+  }
+
+  if (currentIpTimestamps.length >= requestThreshold) {
+    return false;
+  }
+
   currentIpTimestamps.push(currentTime);
   logPerIpMap.set(ipAddress, currentIpTimestamps);
   const sortedEntries = Array.from(logPerIpMap.entries())
@@ -62,20 +65,20 @@ const slidingWindowLog = (ipAddress, logPerIpMap, requestThreshold) => {
   logPerIpMap = new Map(sortedEntries);
   return true;
 };
-const slidingWindowCounter = (requests, requestThreshold,duration,currentWindow) => {
+const slidingWindowCounter = (requests, requestThreshold, duration, currentWindow) => {
   const currentTime = Date.now();
   const twentySeconds = 20 * 1000;
   let previousWindowCounts = 0;
   let count = 0;
   while (requests.length > 0 && currentTime - requests[0] > twentySeconds) {
-    if(count == 0){
-      currentWindow[0] += 20;  
+    if (count == 0) {
+      currentWindow[0] += 20;
     }
     requests.shift();
     previousWindowCounts++;
     count++;
   }
-  const previousWindowWeight = 1 - (currentWindow[0]/duration);
+  const previousWindowWeight = 1 - (currentWindow[0] / duration);
   const totalRequestsWithWeight = (requests.length) + (previousWindowCounts * previousWindowWeight);
   if (totalRequestsWithWeight < requestThreshold) {
     requests.push(currentTime);

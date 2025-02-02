@@ -49,7 +49,6 @@ export const rateLimiter = async (req, res, next) => {
     next();
   } catch (err) {
     console.error('Rate limiting error:', err);
-    // Don't block requests on Redis errors
     next();
   }
 };
